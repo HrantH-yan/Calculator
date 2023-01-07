@@ -1,1 +1,2 @@
-# Calculator
+Basic callculator. 
+Only '+' '-' '*' '/' operators
