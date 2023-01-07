@@ -1,50 +1,89 @@
 #include <iostream>
 
-struct Expression
+struct Word
 {
-    int idx_point1 = -1;
-    int idx_point2 = -1;
-    int idx_op;
-    char op;
-    int length;
+    int length = 0;
     char *arr = new char[0];
 };
 
-bool num_check(char *expression, int start, int end, int idx_point); // checks if the number from expression is correct
-float chars_to_num(char *expression, int start, int end, int idx_point); // converts a number from expression to float
-Expression input_char_arr(char end); // inputting and storing chars in array(till end symbol), and collecting parameters
+Word append(Word input, char sym);
+float chars_to_num(Word input,int idx_point); // converts a number from expression to float
 
 
 int main()
 {
+    char oprtr;
+    char sym;
+    Word w_num1;
+    Word w_num2;
+    int idx_point1;
+    int idx_point2;
+    int idx;     
+    std::cout<<"Enter an expression consisting of two non negative numbers, add '=' at the end\n";
+    std::cout<<"Only '+' '-' '*' '/' operators allowed\n";
     while (true)
     {
-        Expression expr;
-        std::cout<<"Enter an expression consisting of two non negative numbers, add '=' at the end\n";
-        std::cout<<"Enter '-1 =' to end\n"; 
-        expr = input_char_arr('=');
-        if((expr.arr[0] == '-') && expr.arr[1] == '1')  // end condition
+        std::cout<<"Enter '-1' to end\n"; 
+        delete[] w_num1.arr;
+        delete[] w_num2.arr;
+        w_num1.arr = new char[0];
+        w_num2.arr = new char[0];
+        w_num1.length = 0;
+        w_num2.length = 0;
+        idx = 1;
+        idx_point1 = -1;
+        idx_point2= -1;
+        bool end_cond = true;
+        while (true)
         {
-            std::cout<<"\nProgram finished\n";
-            return 0;
-        }
-        if (!num_check(expr.arr, 0, expr.idx_op, expr.idx_point1))  //checking num1 ( if there are other symbols exept point1)
-        {
-            std::cout<<"Wrong input(example of allowed expression '10.5 * 30'): Try again\n";
-            return 0;
-        }
-        if (!num_check(expr.arr, expr.idx_op+1, expr.length, expr.idx_point2)) //checking num2
-        {
-            std::cout<<"Wrong input(example of allowed expression '10.5 * 30'): Try again\n";
-            return 0;
+            std::cin>>sym;
+            if (sym == '.' && idx == 1)
+            {
+                idx_point1 = w_num1.length;
+                ++idx;
+            }
+            else if (!isdigit(sym))
+            {
+                oprtr = sym;
+                break;
+            }
+            w_num1 = append(w_num1, sym);
+            end_cond = false;
         }
 
-        float num1 = 0;
-        float num2 = 0;        
-        num1 = chars_to_num(expr.arr, 0 , expr.idx_op, expr.idx_point1);
-        num2 = chars_to_num(expr.arr, expr.idx_op + 1, expr.length, expr.idx_point2);
-       
-        switch (expr.op)
+        while (true)
+        {
+            std::cin>>sym;
+
+            if (end_cond && sym == '1')     // end condition
+            {
+                std::cout<<"\nProgram finished\n";
+                return 0;
+            }
+
+            if (sym == '.' && idx < 3)
+            {
+                idx_point2 = w_num2.length;
+                idx= idx + 10;  //no more points
+            }
+            else if (sym == '=')
+            {
+                break;
+            }
+            else if (!isdigit(sym))
+            {
+                std::cout<<"\nWrong input only '+' '-' '*' '/' operators allowed(f.e. '10.5 * 30'):\n";
+                return 0;
+            }
+            w_num2 = append(w_num2, sym);
+            end_cond = false;
+        }
+
+        float num1;
+        float num2;
+        num1 = chars_to_num(w_num1, idx_point1);
+        num2 = chars_to_num(w_num2, idx_point2);
+        switch (oprtr)
         {
         case '+':
             std::cout<<num1 + num2<<'\n';
@@ -64,120 +103,45 @@ int main()
             std::cout<<num1 / num2<<'\n';
             break;
         default:
-            std::cout<<"Wrong input: Try again\n";
+            std::cout<<"\nWrong input only '+' '-' '*' '/' operators allowed(f.e. '10.5 * 30'):\n";
             break;
         }
     }
     return 0;
 }
 
-
-
-bool num_check(char *expression, int start, int end, int idx_point)
-{
-    if (isdigit(expression[start]))
-    {
-        for (int k = start; k < end;++k)
-        {
-            if (k == idx_point)
-            {
-                continue;
-            }
-            else if(!isdigit(expression[k]))
-            { 
-                return false;
-                break;
-            }
-        } 
-    }
-    else
-    {
-        return false;
-    }
-    return true;
-}
-
-float chars_to_num(char *expression, int start, int end, int idx_point)
+float chars_to_num(Word input, int idx_point)
 {
     if (idx_point == -1) //if num is integer(no '.' input in num) setting idx_point at the end of num
     {
-        idx_point = end;
+        idx_point = input.length;
     }
     float num = 0;
     float digit_mul = 1;
-    for (int k = idx_point -1; k >= start ;--k)  // before '.'
+    for (int k = idx_point -1; k >= 0 ;--k)  // before '.'
 {
-        num = num + (expression[k] ^ 48)*digit_mul;
+        num = num + (input.arr[k] ^ 48)*digit_mul;
         digit_mul = digit_mul * 10;
     }
     digit_mul = 0.1;
-    for (int k =idx_point +1; k < end ;++k) //after '.'
+    for (int k =idx_point +1; k < input.length ;++k) //after '.'
     {
-        num = num + (expression[k] ^ 48)*digit_mul;
+        num = num + (input.arr[k] ^ 48)*digit_mul;
         digit_mul = digit_mul / 10;
     }
     return num;
 }
 
-Expression input_char_arr(char end)
+Word append(Word input, char sym)
 {
-    int i = 0;
-    int idx = 1;
-    char sym;
-    char *temp = new char[0];
-    Expression expr;
-    while(true)
+    Word word;
+    delete[] word.arr;
+    word.arr = new char[input.length+1];
+    for (int k = 0; k < input.length; ++k)
     {
-        
-        std::cin>>sym;
-        if (sym == end)
-        {
-            break;
-        }
-        if (sym == '.' && idx == 1)
-        {
-            expr.idx_point1 = i;
-            ++idx;
-        }        
-        else if (sym == '.' && idx == 2)
-        {
-            expr.idx_point2 = i;
-            ++idx;
-        }
-        else if (!isdigit(sym) && sym != '.')
-        {
-            expr.idx_op = i;
-            expr.op = sym; 
-        }
-
-        if (i % 2 == 0)                        // deleting space in heap allocated to expression 
-        {                                      // and allocating new one bigger by one char
-        delete[]  expr.arr;                    // copy all elements from temp to expression
-        expr.arr = new char[i+1];              // and adding new sym
-        for (int k = 0; k < i; ++k)
-        {
-            expr.arr[k] = temp[k];
-        }
-        expr.arr[i] = sym;
-        }
-        else if (i % 2 == 1)                 
-        {
-            delete[]  temp;
-            temp = new char[i+1];
-            for (int k = 0; k < i; ++k)
-            {
-                temp[k] = expr.arr[k];
-            }
-            temp[i] = sym;
-        }
-        ++i;
-    }             
-    if (i % 2 == 0)
-    {    
-        expr.arr[i-1] = temp[i-1];
-        delete[] temp;
-    }        //at the end of loop i is also the length of expression 
-    expr.length = i;
-    return expr;    
-
+        word.arr[k] = input.arr[k];
+    }
+    word.arr[input.length] = sym;
+    word.length = input.length + 1;
+    return word;
 }
