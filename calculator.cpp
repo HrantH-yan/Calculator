@@ -21,6 +21,7 @@ int main()
     {
         Expression expr;
         std::cout<<"Enter an expression consisting of two non negative numbers, add '=' at the end\n";
+        std::cout<<"Enter '-1 =' to end"; 
         expr = input_char_arr('=');
        
         if((expr.arr[0] == '-') && expr.arr[1] == '1')  // end condition
